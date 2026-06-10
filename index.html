@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serraseg – Cotação Residencial</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<style>
+  :root {
+    --navy: #1A2744;
+    --navy-light: #243460;
+    --orange: #D46A1A;
+    --orange-light: #E8832A;
+    --bg: #F0F2F7;
+    --white: #FFFFFF;
+    --text: #1A2744;
+    --text-muted: #5A6A8A;
+    --border: #D0D8E8;
+    --success: #2E7D52;
+    --error: #C0392B;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--navy);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+
+  .logo-mark {
+    width: 44px; height: 44px;
+    background: var(--orange);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 20px; color: #fff;
+    letter-spacing: -1px;
+  }
+
+  header h1 {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  header h1 span {
+    color: var(--orange);
+  }
+
+  header p {
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::before {
+    content: '';
+    display: block;
+    width: 4px; height: 16px;
+    background: var(--orange);
+    border-radius: 2px;
+  }
+
+  /* UPLOAD AREA */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #FAFBFD;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--orange);
+    background: #FFF7F0;
+  }
+
+  .upload-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .upload-zone h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .upload-zone p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .upload-zone input { display: none; }
+
+  /* FILE LIST */
+  .file-list {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #F5F7FB;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .file-item .file-icon { font-size: 20px; }
+
+  .file-item .file-info { flex: 1; min-width: 0; }
+
+  .file-item .file-name {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .file-item .file-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .file-item .remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 18px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+
+  .file-item .remove-btn:hover { background: #FFE5E5; color: var(--error); }
+
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-hdi { background: #E3F0FF; color: #1A5FAD; }
+  .badge-yelum { background: #E8F5E9; color: #2E7D52; }
+  .badge-porto { background: #FFF3E0; color: #E65100; }
+  .badge-allianz { background: #E8EAF6; color: #3949AB; }
+  .badge-unknown { background: #F5F5F5; color: #757575; }
+
+  /* BUTTON */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--orange);
+    color: #fff;
+    width: 100%;
+    justify-content: center;
+    font-size: 15px;
+    padding: 14px;
+  }
+
+  .btn-primary:hover:not(:disabled) { background: var(--orange-light); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212,106,26,0.3); }
+  .btn-primary:disabled { background: #C0C8D8; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn-secondary {
+    background: var(--navy);
+    color: #fff;
+    width: 100%;
+    justify-content: center;
+    font-size: 15px;
+    padding: 14px;
+  }
+
+  .btn-secondary:hover { background: var(--navy-light); }
+
+  /* PROGRESS */
+  .progress-wrap {
+    display: none;
+    margin-top: 16px;
+  }
+
+  .progress-wrap.visible { display: block; }
+
+  .progress-bar-bg {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--orange);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* RESULT */
+  .result-card {
+    display: none;
+    border: 2px solid var(--success);
+    background: #F0FBF5;
+  }
+
+  .result-card.visible { display: block; }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .result-icon { font-size: 28px; }
+
+  .result-header h3 { font-size: 16px; font-weight: 700; color: var(--success); }
+  .result-header p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ERROR */
+  .error-box {
+    display: none;
+    padding: 14px 16px;
+    background: #FFF5F5;
+    border: 1px solid #FFCDD2;
+    border-radius: 8px;
+    color: var(--error);
+    font-size: 13px;
+    margin-top: 12px;
+  }
+
+  .error-box.visible { display: block; }
+
+  /* SETTINGS */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 520px) { .settings-grid { grid-template-columns: 1fr; } }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text);
+    background: #FAFBFD;
+    transition: border-color 0.15s;
+  }
+
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--orange);
+    background: #fff;
+  }
+
+  /* PREVIEW TABLE */
+  .preview-section { margin-top: 12px; }
+
+  .preview-section h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .preview-table th {
+    background: var(--navy);
+    color: #fff;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .preview-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .preview-table tr:last-child td { border-bottom: none; }
+  .preview-table tr:nth-child(even) td { background: #F8F9FC; }
+
+  .preview-total td {
+    font-weight: 700;
+    background: #EFF3FB !important;
+    color: var(--navy);
+  }
+
+  /* SEPARATOR */
+  .sep { height: 1px; background: var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">SS</div>
+  <div>
+    <h1>Serraseg <span>·</span> Cotação Residencial</h1>
+    <p>Padronização automática de cotações</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONFIGURAÇÕES -->
+  <div class="card">
+    <div class="card-title">Configurações</div>
+    <div class="settings-grid">
+      <div class="field">
+        <label>Corretor responsável</label>
+        <input type="text" id="corretorNome" value="Jeison Reis" placeholder="Nome do corretor">
+      </div>
+      <div class="field">
+        <label>Telefone / WhatsApp</label>
+        <input type="text" id="corretorTel" value="(54) 9 99980961" placeholder="(54) 9 0000-0000">
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="card">
+    <div class="card-title">PDFs das Seguradoras</div>
+
+    <div class="upload-zone" id="uploadZone">
+      <div class="upload-icon">📄</div>
+      <h3>Arraste os PDFs aqui ou clique para selecionar</h3>
+      <p>HDI, Yelum — uma ou múltiplas cotações</p>
+      <input type="file" id="fileInput" accept=".pdf" multiple>
+    </div>
+
+    <div class="file-list" id="fileList"></div>
+
+    <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <!-- AÇÃO -->
+  <div class="card">
+    <div class="card-title">Gerar Cotação Padronizada</div>
+    <button class="btn btn-primary" id="generateBtn" disabled onclick="generateQuote()">
+      ⚡ Gerar Cotação Serraseg
+    </button>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">Iniciando...</div>
+    </div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="card result-card" id="resultCard">
+    <div class="result-header">
+      <div class="result-icon">✅</div>
+      <div>
+        <h3>Cotação gerada com sucesso!</h3>
+        <p id="resultDesc">Pronta para envio ao cliente.</p>
+      </div>
+    </div>
+    <button class="btn btn-secondary" id="downloadBtn" onclick="downloadPDF()">
+      ⬇️ Baixar PDF
+    </button>
+  </div>
+
+</main>
+
+<script>
+// Configura o worker do PDF.js via import dinâmico para evitar o aviso "fake worker"
+if (typeof Worker !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+} else {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+}
+
+let uploadedFiles = [];
+let extractedData = null;
+let pdfDoc = null;
+
+// ─── UPLOAD ───────────────────────────────────────────────────────
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => handleFiles(Array.from(e.target.files)));
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  handleFiles(Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf'));
+});
+
+function handleFiles(files) {
+  files.forEach(f => {
+    if (!uploadedFiles.find(x => x.name === f.name)) uploadedFiles.push(f);
+  });
+  renderFileList();
+  updateGenerateBtn();
+  hideError();
+}
+
+function detectInsurer(name) {
+  const n = name.toLowerCase();
+  if (n.includes('hdi')) return { label: 'HDI', cls: 'badge-hdi' };
+  if (n.includes('yelum') || n.includes('miracilde') || n.includes('gerelli')) return { label: 'Yelum', cls: 'badge-yelum' };
+  if (n.includes('porto')) return { label: 'Porto Seguro', cls: 'badge-porto' };
+  if (n.includes('allianz')) return { label: 'Allianz', cls: 'badge-allianz' };
+  return { label: 'Detectando...', cls: 'badge-unknown' };
+}
+
+function renderFileList() {
+  const list = document.getElementById('fileList');
+  list.innerHTML = '';
+  uploadedFiles.forEach((f, i) => {
+    const ins = detectInsurer(f.name);
+    const size = (f.size / 1024).toFixed(0);
+    const el = document.createElement('div');
+    el.className = 'file-item';
+    el.innerHTML = `
+      <div class="file-icon">📋</div>
+      <div class="file-info">
+        <div class="file-name">${f.name}</div>
+        <div class="file-meta">${size} KB &nbsp;·&nbsp; <span class="badge ${ins.cls}">${ins.label}</span></div>
+      </div>
+      <button class="remove-btn" onclick="removeFile(${i})" title="Remover">×</button>`;
+    list.appendChild(el);
+  });
+}
+
+function removeFile(i) {
+  uploadedFiles.splice(i, 1);
+  renderFileList();
+  updateGenerateBtn();
+}
+
+function updateGenerateBtn() {
+  document.getElementById('generateBtn').disabled = uploadedFiles.length === 0;
+}
+
+function hideError() { document.getElementById('errorBox').classList.remove('visible'); }
+function showError(msg) {
+  const b = document.getElementById('errorBox');
+  b.textContent = '⚠️ ' + msg;
+  b.classList.add('visible');
+}
+
+function setProgress(pct, label) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = label;
+}
+
+// ─── PDF TEXT EXTRACTION ──────────────────────────────────────────
+async function extractPDFText(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(item => item.str).join(' ') + '\n';
+  }
+  return text;
+}
+
+// ─── CLAUDE API ───────────────────────────────────────────────────
+async function callClaude(pdfTexts) {
+  const combinedText = pdfTexts.map((t, i) => `=== COTAÇÃO ${i+1} ===\n${t}`).join('\n\n');
+
+  const prompt = `Você é um especialista em seguros residenciais. Analise as cotações abaixo e extraia os dados estruturados em JSON.
+
+COTAÇÕES:
+${combinedText}
+
+Retorne SOMENTE um objeto JSON válido, sem texto adicional, sem backticks, com esta estrutura exata:
+
+{
+  "segurado": {
+    "nome": "string",
+    "cpf": "string",
+    "endereco": "string",
+    "cidade": "string",
+    "uf": "string",
+    "cep": "string"
+  },
+  "cotacoes": [
+    {
+      "seguradora": "HDI|Yelum|Porto Seguro|Allianz",
+      "numero": "string",
+      "vigencia_inicio": "DD/MM/AAAA",
+      "vigencia_fim": "DD/MM/AAAA",
+      "tipo_imovel": "CASA|APARTAMENTO",
+      "construcao": "string",
+      "premio_liquido": "string (ex: R$ 641,36)",
+      "premio_total": "string (ex: R$ 688,69)",
+      "iof": "string (ex: 7,38%)",
+      "coberturas": [
+        {
+          "nome": "string",
+          "lmi": "string (ex: R$ 600.000,00 ou vazio se não tiver)",
+          "premio": "string (ex: R$ 129,07)",
+          "franquia": "string (ex: 10% mín. R$ 350,00 ou Sem franquia)"
+        }
+      ],
+      "pagamento": {
+        "cartao": [
+          { "parcelas": "1x", "valor": "R$ 000,00" }
+        ],
+        "debito": [
+          { "parcelas": "1x", "valor": "R$ 000,00", "modalidade": "1ª no Ato|1ª a 30 dias|Melhor Data" }
+        ],
+        "carne": [
+          { "parcelas": "1x", "valor": "R$ 000,00", "modalidade": "1ª no Ato|1ª a 7 dias" }
+        ]
+      }
+    }
+  ]
+}
+
+REGRAS IMPORTANTES:
+- Para HDI: extraia as colunas "Cartão de Crédito", "Débito 1ª no Ato", "Débito 1ª a 30 dias" e "Carnê 1ª a 7 dias" da tabela de parcelas. Inclua todas as linhas (1x a 11x) com valor diferente de "-".
+- Para Yelum: a tabela usa formato "AVISTA", "1+1", "1+2" etc. Mapeie: AVISTA = 1x, 1+1 = 2x, 1+2 = 3x, etc. Use colunas CARNÊ, DÉBITO C/C e CARTÃO DE CRÉDITO. Inclua também as linhas "0+N" (sem entrada) como opção separada se relevante.
+- Para o campo "tipo_imovel": detecte CASA ou APARTAMENTO.
+- Se um campo não existir no documento, use string vazia "".
+- Não invente valores — use apenas o que estiver no texto.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error?.message || 'Erro na API Claude');
+  }
+
+  const data = await response.json();
+  const rawText = data.content[0].text.trim();
+  const clean = rawText.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+// ─── GENERATE ─────────────────────────────────────────────────────
+async function generateQuote() {
+  hideError();
+  document.getElementById('resultCard').classList.remove('visible');
+  document.getElementById('generateBtn').disabled = true;
+
+  const progressWrap = document.getElementById('progressWrap');
+  progressWrap.classList.add('visible');
+  setProgress(5, 'Lendo PDFs...');
+
+  try {
+    // Extract text from all PDFs
+    const texts = [];
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      setProgress(10 + (i * 20), `Extraindo texto: ${uploadedFiles[i].name}`);
+      texts.push(await extractPDFText(uploadedFiles[i]));
+    }
+
+    setProgress(40, 'Analisando cotações com IA...');
+    const data = await callClaude(texts);
+    extractedData = data;
+
+    setProgress(75, 'Gerando PDF padronizado...');
+    pdfDoc = buildPDF(data);
+
+    setProgress(100, 'Concluído!');
+
+    const nomes = data.cotacoes.map(c => c.seguradora).join(', ');
+    document.getElementById('resultDesc').textContent =
+      `${data.segurado.nome} · ${nomes}`;
+    document.getElementById('resultCard').classList.add('visible');
+
+  } catch (err) {
+    showError(err.message);
+    setProgress(0, '');
+  } finally {
+    document.getElementById('generateBtn').disabled = false;
+    setTimeout(() => progressWrap.classList.remove('visible'), 2000);
+  }
+}
+
+// ─── PDF BUILDER ──────────────────────────────────────────────────
+function buildPDF(data) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const NAVY = [26, 39, 68];
+  const ORANGE = [212, 106, 26];
+  const LIGHT_BG = [240, 242, 247];
+  const WHITE = [255, 255, 255];
+  const MUTED = [90, 106, 138];
+  const BORDER = [208, 216, 232];
+
+  const W = 210;
+  const MARGIN = 14;
+  const CONTENT_W = W - MARGIN * 2;
+
+  const corretorNome = document.getElementById('corretorNome').value || 'Jeison Reis';
+  const corretorTel = document.getElementById('corretorTel').value || '(54) 9 9999-9999';
+
+  let y = 0;
+
+  function addPage() {
+    doc.addPage();
+    y = 0;
+    drawHeader();
+  }
+
+  function checkPage(needed = 30) {
+    if (y + needed > 272) addPage();
+  }
+
+  function drawHeader() {
+    // Navy bar
+    doc.setFillColor(...NAVY);
+    doc.rect(0, 0, W, 22, 'F');
+
+    // Orange accent
+    doc.setFillColor(...ORANGE);
+    doc.rect(0, 0, 4, 22, 'F');
+
+    // SS logo
+    doc.setFillColor(...ORANGE);
+    doc.roundedRect(8, 4, 14, 14, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SS', 15, 13, { align: 'center' });
+
+    // Title
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('SERRASEG', 27, 10.5);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(180, 195, 220);
+    doc.text('Corretora de Seguros', 27, 15.5);
+
+    // Right side: Segurado name
+    doc.setFontSize(8);
+    doc.setTextColor(180, 195, 220);
+    doc.text('COTAÇÃO RESIDENCIAL', W - MARGIN, 10.5, { align: 'right' });
+    doc.setFontSize(7);
+    doc.text(data.segurado.nome.toUpperCase(), W - MARGIN, 15.5, { align: 'right' });
+
+    y = 28;
+  }
+
+  // ── FIRST PAGE ──
+  drawHeader();
+
+  // ── SEGURADO BLOCK ──
+  doc.setFillColor(...LIGHT_BG);
+  doc.roundedRect(MARGIN, y, CONTENT_W, 28, 3, 3, 'F');
+
+  doc.setTextColor(...ORANGE);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DADOS DO SEGURADO', MARGIN + 4, y + 6);
+
+  doc.setTextColor(...NAVY);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text(data.segurado.nome || '—', MARGIN + 4, y + 13);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...MUTED);
+  const addr = [data.segurado.endereco, data.segurado.cidade, data.segurado.uf, data.segurado.cep].filter(Boolean).join(' · ');
+  doc.text(addr || '—', MARGIN + 4, y + 19);
+
+  if (data.segurado.cpf) {
+    doc.text('CPF: ' + data.segurado.cpf, MARGIN + 4, y + 24);
+  }
+
+  y += 34;
+
+  // ── EACH INSURER QUOTE ──
+  data.cotacoes.forEach((cot, idx) => {
+    checkPage(60);
+
+    // Insurer header
+    doc.setFillColor(...NAVY);
+    doc.roundedRect(MARGIN, y, CONTENT_W, 12, 2, 2, 'F');
+    doc.setFillColor(...ORANGE);
+    doc.rect(MARGIN, y, 3, 12, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(cot.seguradora.toUpperCase(), MARGIN + 7, y + 8);
+
+    // Right meta
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(180, 195, 220);
+    const vigencia = cot.vigencia_inicio && cot.vigencia_fim
+      ? `Vigência: ${cot.vigencia_inicio} a ${cot.vigencia_fim}`
+      : '';
+    doc.text(vigencia, W - MARGIN, y + 5, { align: 'right' });
+    if (cot.numero) doc.text(`Cotação nº ${cot.numero}`, W - MARGIN, y + 9.5, { align: 'right' });
+
+    y += 16;
+
+    // Meta row
+    doc.setFillColor(245, 247, 251);
+    doc.rect(MARGIN, y, CONTENT_W, 9, 'F');
+    doc.setTextColor(...MUTED);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    const meta = [cot.tipo_imovel, cot.construcao].filter(Boolean).join(' · ');
+    doc.text(meta || '', MARGIN + 3, y + 6);
+
+    // Premio total destaque
+    doc.setTextColor(...ORANGE);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text(`Prêmio Total: ${cot.premio_total || '—'}`, W - MARGIN, y + 6, { align: 'right' });
+
+    y += 13;
+
+    // ── COBERTURAS ──
+    checkPage(40);
+
+    doc.setFillColor(...NAVY);
+    doc.rect(MARGIN, y, CONTENT_W, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.text('COBERTURA', MARGIN + 3, y + 4.8);
+    doc.text('LMI (R$)', MARGIN + 90, y + 4.8, { align: 'right' });
+    doc.text('PRÊMIO (R$)', MARGIN + 118, y + 4.8, { align: 'right' });
+    doc.text('FRANQUIA', W - MARGIN, y + 4.8, { align: 'right' });
+
+    y += 7;
+
+    cot.coberturas.forEach((cob, ci) => {
+      checkPage(10);
+      if (ci % 2 === 0) {
+        doc.setFillColor(250, 251, 253);
+        doc.rect(MARGIN, y, CONTENT_W, 7, 'F');
+      }
+      doc.setTextColor(...NAVY);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+
+      const nomeLines = doc.splitTextToSize(cob.nome, 82);
+      const lineH = nomeLines.length > 1 ? 4 : 0;
+      doc.text(nomeLines[0], MARGIN + 3, y + 4.8);
+
+      doc.text(cob.lmi || '—', MARGIN + 90, y + 4.8, { align: 'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.text(cob.premio || '—', MARGIN + 118, y + 4.8, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...MUTED);
+      const franqLines = doc.splitTextToSize(cob.franquia || '—', 55);
+      doc.text(franqLines[0], W - MARGIN, y + 4.8, { align: 'right' });
+
+      doc.setDrawColor(...BORDER);
+      doc.line(MARGIN, y + 7, W - MARGIN, y + 7);
+
+      y += 7;
+    });
+
+    // Premio liquido row
+    checkPage(10);
+    doc.setFillColor(240, 243, 251);
+    doc.rect(MARGIN, y, CONTENT_W, 8, 'F');
+    doc.setTextColor(...NAVY);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Prêmio Líquido', MARGIN + 3, y + 5.5);
+    doc.text(cot.premio_liquido || '—', MARGIN + 118, y + 5.5, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...MUTED);
+    doc.setFontSize(7);
+    doc.text(`IOF: ${cot.iof || '—'}`, W - MARGIN, y + 5.5, { align: 'right' });
+
+    y += 12;
+
+    // ── PAGAMENTO ──
+    checkPage(60);
+
+    doc.setFillColor(...ORANGE);
+    doc.rect(MARGIN, y, CONTENT_W, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.text('FORMAS DE PAGAMENTO', MARGIN + 3, y + 4.8);
+
+    y += 7;
+
+    // Build unified parcelas table
+    const allParcelas = new Set();
+    const cartaoMap = {}, debitoAtoMap = {}, debito30Map = {}, debitoMDMap = {}, carneAtoMap = {}, carne7Map = {};
+
+    (cot.pagamento?.cartao || []).forEach(p => {
+      allParcelas.add(p.parcelas);
+      cartaoMap[p.parcelas] = p.valor;
+    });
+    (cot.pagamento?.debito || []).forEach(p => {
+      allParcelas.add(p.parcelas);
+      const mod = (p.modalidade || '').toLowerCase();
+      if (mod.includes('30')) debito30Map[p.parcelas] = p.valor;
+      else if (mod.includes('melhor') || mod.includes('md')) debitoMDMap[p.parcelas] = p.valor;
+      else debitoAtoMap[p.parcelas] = p.valor;
+    });
+    (cot.pagamento?.carne || []).forEach(p => {
+      allParcelas.add(p.parcelas);
+      const mod = (p.modalidade || '').toLowerCase();
+      if (mod.includes('7')) carne7Map[p.parcelas] = p.valor;
+      else carneAtoMap[p.parcelas] = p.valor;
+    });
+
+    const parcOrder = ['1x','2x','3x','4x','5x','6x','7x','8x','9x','10x','11x','12x'];
+    const sortedParcelas = Array.from(allParcelas).sort((a,b) => {
+      const ai = parcOrder.indexOf(a), bi = parcOrder.indexOf(b);
+      if (ai === -1 && bi === -1) return 0;
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+
+    // Determine which columns have data
+    const hasCartao = Object.keys(cartaoMap).length > 0;
+    const hasDebitoAto = Object.keys(debitoAtoMap).length > 0;
+    const hasDebito30 = Object.keys(debito30Map).length > 0;
+    const hasDebitoMD = Object.keys(debitoMDMap).length > 0;
+    const hasCarneAto = Object.keys(carneAtoMap).length > 0;
+    const hasCarne7 = Object.keys(carne7Map).length > 0;
+
+    // Build column definitions
+    const cols = [{ label: 'Parcelas', w: 18 }];
+    if (hasCartao) cols.push({ label: 'Cartão', w: 0, group: 'Cartão de Crédito' });
+    if (hasDebitoAto) cols.push({ label: '1ª no Ato', w: 0, group: 'Débito' });
+    if (hasDebito30) cols.push({ label: '1ª a 30d', w: 0, group: 'Débito' });
+    if (hasDebitoMD) cols.push({ label: 'Melhor Data', w: 0, group: 'Débito' });
+    if (hasCarneAto) cols.push({ label: '1ª no Ato', w: 0, group: 'Carnê' });
+    if (hasCarne7) cols.push({ label: '1ª a 7d', w: 0, group: 'Carnê' });
+
+    const dataCols = cols.length - 1;
+    const dataW = (CONTENT_W - 18) / dataCols;
+    cols.slice(1).forEach(c => c.w = dataW);
+
+    // Group header row
+    const groups = {};
+    cols.slice(1).forEach((c, i) => {
+      if (!groups[c.group]) groups[c.group] = { start: i + 1, count: 0 };
+      groups[c.group].count++;
+    });
+
+    checkPage(sortedParcelas.length * 6 + 20);
+
+    // Group headers
+    doc.setFillColor(240, 243, 251);
+    doc.rect(MARGIN, y, CONTENT_W, 6, 'F');
+    doc.setTextColor(...NAVY);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+
+    let cx = MARGIN + 18;
+    const groupOrder = ['Cartão de Crédito', 'Débito', 'Carnê'];
+    groupOrder.forEach(gName => {
+      if (!groups[gName]) return;
+      const g = groups[gName];
+      const gw = g.count * dataW;
+      doc.text(gName.toUpperCase(), cx + gw / 2, y + 4.2, { align: 'center' });
+      doc.setDrawColor(...BORDER);
+      doc.line(cx + gw, y, cx + gw, y + 6);
+      cx += gw;
+    });
+
+    y += 6;
+
+    // Column headers
+    doc.setFillColor(...NAVY);
+    doc.rect(MARGIN, y, CONTENT_W, 6, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+
+    let colX = MARGIN;
+    cols.forEach(col => {
+      doc.text(col.label, colX + col.w / 2, y + 4.2, { align: 'center' });
+      colX += col.w;
+    });
+
+    y += 6;
+
+    // Data rows
+    sortedParcelas.forEach((parc, ri) => {
+      checkPage(8);
+      if (ri % 2 === 0) {
+        doc.setFillColor(250, 251, 253);
+        doc.rect(MARGIN, y, CONTENT_W, 6, 'F');
+      }
+
+      const vals = {
+        'Parcelas': parc,
+        'Cartão': cartaoMap[parc] || '—',
+        '1ª no Ato_Débito': debitoAtoMap[parc] || '—',
+        '1ª a 30d': debito30Map[parc] || '—',
+        'Melhor Data': debitoMDMap[parc] || '—',
+        '1ª no Ato_Carnê': carneAtoMap[parc] || '—',
+        '1ª a 7d': carne7Map[parc] || '—',
+      };
+
+      colX = MARGIN;
+      cols.forEach(col => {
+        let key = col.label;
+        if (col.label === '1ª no Ato' && col.group === 'Débito') key = '1ª no Ato_Débito';
+        if (col.label === '1ª no Ato' && col.group === 'Carnê') key = '1ª no Ato_Carnê';
+        const val = vals[key] || '—';
+
+        doc.setFontSize(7);
+        doc.setFont('helvetica', col.label === 'Parcelas' ? 'bold' : 'normal');
+
+        if (col.label === 'Parcelas') {
+          doc.setTextColor(...NAVY);
+        } else {
+          doc.setTextColor(val === '—' ? 180 : 40, val === '—' ? 180 : 50, val === '—' ? 180 : 80);
+        }
+
+        doc.text(val, colX + col.w / 2, y + 4.2, { align: 'center' });
+
+        doc.setDrawColor(...BORDER);
+        doc.line(colX + col.w, y, colX + col.w, y + 6);
+
+        colX += col.w;
+      });
+
+      doc.setDrawColor(...BORDER);
+      doc.line(MARGIN, y + 6, W - MARGIN, y + 6);
+
+      y += 6;
+    });
+
+    y += 14;
+
+    // Separator between insurers
+    if (idx < data.cotacoes.length - 1) {
+      checkPage(10);
+      doc.setDrawColor(...BORDER);
+      doc.setLineDashPattern([2, 2], 0);
+      doc.line(MARGIN, y, W - MARGIN, y);
+      doc.setLineDashPattern([], 0);
+      y += 10;
+    }
+  });
+
+  // ── FOOTER (all pages) ──
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+
+    doc.setFillColor(...NAVY);
+    doc.rect(0, 285, W, 12, 'F');
+    doc.setFillColor(...ORANGE);
+    doc.rect(0, 285, 4, 12, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text(corretorNome, MARGIN, 292.5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(180, 195, 220);
+    doc.text(corretorTel, MARGIN + 50, 292.5);
+    doc.text('@jeisonreiscorretor', MARGIN + 90, 292.5);
+
+    doc.setTextColor(180, 195, 220);
+    doc.text(`${i} / ${totalPages}`, W - MARGIN, 292.5, { align: 'right' });
+  }
+
+  return doc;
+}
+
+function downloadPDF() {
+  if (!pdfDoc || !extractedData) return;
+  const nome = extractedData.segurado?.nome?.replace(/\s+/g, '_') || 'cotacao';
+  const seguradoras = extractedData.cotacoes.map(c => c.seguradora).join('-');
+  pdfDoc.save(`Serraseg_Residencial_${nome}_${seguradoras}.pdf`);
+}
+</script>
+</body>
+</html>
