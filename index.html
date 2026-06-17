@@ -860,20 +860,19 @@ function buildPDF(data) {
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
     doc.text('COBERTURA', MARGIN + 3, y + 4.8);
-    doc.text('LMI (R$)', MARGIN + 78, y + 4.8, { align: 'right' });
-    doc.text('PRÊMIO (R$)', MARGIN + 102, y + 4.8, { align: 'right' });
-    doc.text('FRANQUIA', MARGIN + 106, y + 4.8);
+    doc.text('LMI (R$)', MARGIN + 72, y + 4.8, { align: 'right' });
+    doc.text('PRÊMIO (R$)', MARGIN + 95, y + 4.8, { align: 'right' });
+    doc.text('FRANQUIA', MARGIN + 99, y + 4.8);
 
     y += 7;
 
     cot.coberturas.forEach((cob, ci) => {
       // Calcula altura necessária desta linha antes de desenhar
-      doc.setFontSize(6.3);
-      const franqLines = doc.splitTextToSize(cob.franquia || '—', 60);
       doc.setFontSize(7);
-      const nomeLines = doc.splitTextToSize(cob.nome, 60);
+      const franqLines = doc.splitTextToSize(cob.franquia || '—', 67);
+      const nomeLines = doc.splitTextToSize(cob.nome, 54);
       const numLines = Math.max(franqLines.length, nomeLines.length, 1);
-      const rowH = Math.max(7, numLines * 3.6 + 2);
+      const rowH = Math.max(7, numLines * 4 + 2);
 
       checkPage(rowH + 3);
 
@@ -885,16 +884,16 @@ function buildPDF(data) {
       doc.setTextColor(...NAVY);
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
-      doc.text(nomeLines, MARGIN + 3, y + 4.6);
+      doc.text(nomeLines, MARGIN + 3, y + 4.8);
 
-      doc.text(cob.lmi || '—', MARGIN + 78, y + 4.6, { align: 'right' });
+      doc.text(cob.lmi || '—', MARGIN + 72, y + 4.8, { align: 'right' });
       doc.setFont('helvetica', 'bold');
-      doc.text(cob.premio || '—', MARGIN + 102, y + 4.6, { align: 'right' });
+      doc.text(cob.premio || '—', MARGIN + 95, y + 4.8, { align: 'right' });
 
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...MUTED);
-      doc.setFontSize(6.3);
-      doc.text(franqLines, MARGIN + 106, y + 4.6);
+      doc.setFontSize(7);
+      doc.text(franqLines, MARGIN + 99, y + 4.8);
 
       doc.setDrawColor(...BORDER);
       doc.line(MARGIN, y + rowH, W - MARGIN, y + rowH);
@@ -910,7 +909,7 @@ function buildPDF(data) {
     doc.setFontSize(7.5);
     doc.setFont('helvetica', 'bold');
     doc.text('Prêmio Líquido', MARGIN + 3, y + 5.5);
-    doc.text(cot.premio_liquido || '—', MARGIN + 102, y + 5.5, { align: 'right' });
+    doc.text(cot.premio_liquido || '—', MARGIN + 95, y + 5.5, { align: 'right' });
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...MUTED);
     doc.setFontSize(7);
